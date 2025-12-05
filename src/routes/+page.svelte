@@ -20,13 +20,43 @@
     reader.readAsDataURL(file);
   }
 
+<script>
+  import { onMount } from "svelte";
+  import { getCars } from "../lib/api.js";
+
+  let cars = [];
+  let make = "";
+  let model = "";
+  let photoFile = null;
+
+  onMount(async () => {
+    cars = await getCars();
+  });
+
+  function handlePhoto(e) {
+    photoFile = e.target.files[0]; // store raw file
+  }
+
   async function submit() {
-    const newCar = await addCar({ make, model, photo });
+    const formData = new FormData();
+    formData.append("make", make);
+    formData.append("model", model);
+    if (photoFile) formData.append("photo", photoFile);
+
+    const res = await fetch("https://bumpahead.pythonanywhere.com/cars", {
+      method: "POST",
+      body: formData
+    });
+
+    const newCar = await res.json();
     cars.push(newCar);
+
     make = "";
     model = "";
-    photo = null;
+    photoFile = null;
+    document.querySelector("input[type=file]").value = null;
   }
+</script>
 </script>
 
 <h1>🚗 Car Gallery</h1>
