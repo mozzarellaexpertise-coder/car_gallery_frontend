@@ -1,27 +1,5 @@
 <script>
   import { onMount } from "svelte";
-  import { getCars, addCar } from "../lib/api.js";
-
-  let cars = [];
-  let make = "";
-  let model = "";
-  let photo = null;
-
-  onMount(async () => {
-    cars = await getCars();
-  });
-
-  function handlePhoto(e) {
-    const file = e.target.files[0];
-    const reader = new FileReader();
-    reader.onload = () => {
-      photo = reader.result;
-    };
-    reader.readAsDataURL(file);
-  }
-
-<script>
-  import { onMount } from "svelte";
   import { getCars } from "../lib/api.js";
 
   let cars = [];
@@ -29,14 +7,17 @@
   let model = "";
   let photoFile = null;
 
+  // Load cars on mount
   onMount(async () => {
     cars = await getCars();
   });
 
+  // Handle file input
   function handlePhoto(e) {
-    photoFile = e.target.files[0]; // store raw file
+    photoFile = e.target.files[0];
   }
 
+  // Submit new car
   async function submit() {
     const formData = new FormData();
     formData.append("make", make);
@@ -47,26 +28,22 @@
       method: "POST",
       body: formData
     });
-
     const newCar = await res.json();
-    cars.push(newCar);
 
+    cars = [...cars, newCar]; // add to array
     make = "";
     model = "";
     photoFile = null;
     document.querySelector("input[type=file]").value = null;
   }
 </script>
-</script>
 
 <h1>🚗 Car Gallery</h1>
 
 <form on:submit|preventDefault={submit}>
-  <input placeholder="Make" bind:value={make} />
-  <input placeholder="Model" bind:value={model} />
-
+  <input placeholder="Make" bind:value={make} required />
+  <input placeholder="Model" bind:value={model} required />
   <input type="file" accept="image/*" on:change={handlePhoto} />
-
   <button>Add Car</button>
 </form>
 
@@ -74,7 +51,6 @@
   {#each cars as car}
     <div class="card">
       <h2>{car.make} {car.model}</h2>
-
       {#if car.photo}
         <img src={car.photo} alt="car" />
       {:else}
@@ -89,6 +65,11 @@
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 1rem;
+  }
+  .card {
+    border: 1px solid #ccc;
+    padding: 0.5rem;
+    border-radius: 10px;
   }
   img {
     width: 100%;
